@@ -20,3 +20,7 @@ def get_rgb():
         return jsonify({"r": center[0], "g": center[1], "b": center[2]})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+# ✅ สำคัญ ต้องใส่ไว้เพื่อให้ gunicorn ทำงานได้
+if __name__ == '__main__':
+    app.run()
