@@ -14,10 +14,9 @@ def get_rgb():
     try:
         data = request.get_json()
         img_data = data['image']
-        img_bytes = base64.b64decode(img_data.split(",")[-1])  # ลบ prefix base64
-        image = Image.open(io.BytesIO(img_bytes))
-        rgb_image = image.convert("RGB")
-        center_pixel = rgb_image.getpixel((rgb_image.width // 2, rgb_image.height // 2))
-        return jsonify({"r": center_pixel[0], "g": center_pixel[1], "b": center_pixel[2]})
+        img_bytes = base64.b64decode(img_data.split(",")[-1])
+        image = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+        center = image.getpixel((image.width // 2, image.height // 2))
+        return jsonify({"r": center[0], "g": center[1], "b": center[2]})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
