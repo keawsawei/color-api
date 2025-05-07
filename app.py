@@ -21,6 +21,6 @@ def get_rgb():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-# ✅ สำคัญ ต้องใส่ไว้เพื่อให้ gunicorn ทำงานได้
+# ✅ สำคัญ: ทำให้ gunicorn รู้จักตัวแปร app
 if __name__ == '__main__':
     app.run()
