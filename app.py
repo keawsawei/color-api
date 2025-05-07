@@ -5,7 +5,7 @@ import base64
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET'])
+@app.route('/')
 def home():
     return "Color Extractor API is running!"
 
@@ -14,22 +14,10 @@ def get_rgb():
     try:
         data = request.get_json()
         img_data = data['image']
-        
-        # แยก header (data:image/jpeg;base64,) ออก
-        base64_str = img_data.split(",")[-1]
-        img_bytes = base64.b64decode(base64_str)
-        
+        img_bytes = base64.b64decode(img_data.split(",")[-1])  # ลบ prefix base64
         image = Image.open(io.BytesIO(img_bytes))
-        image = image.convert("RGB")
-        
-        # เอาค่า pixel ตรงกลางภาพ
-        w, h = image.size
-        r, g, b = image.getpixel((w // 2, h // 2))
-        
-        return jsonify({"r": r, "g": g, "b": b})
-    
+        rgb_image = image.convert("RGB")
+        center_pixel = rgb_image.getpixel((rgb_image.width // 2, rgb_image.height // 2))
+        return jsonify({"r": center_pixel[0], "g": center_pixel[1], "b": center_pixel[2]})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-
-if __name__ == "__main__":
-    app.run(debug=True)
