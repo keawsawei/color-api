@@ -1,26 +1,34 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI
+from pydantic import BaseModel
 from PIL import Image
 import io
 import base64
 
-app = Flask(__name__)
+app = FastAPI()
 
-@app.route('/')
-def home():
-    return "Color Extractor API is running!"
+class ImageInput(BaseModel):
+    image: str  # base64 string
 
-@app.route('/getrgb', methods=['POST'])
-def get_rgb():
+@app.post("/api/extract-color")
+def extract_color(data: ImageInput):
     try:
-        data = request.get_json()
-        img_data = data['image']
-        img_bytes = base64.b64decode(img_data.split(",")[-1])
-        image = Image.open(io.BytesIO(img_bytes)).convert("RGB")
-        center = image.getpixel((image.width // 2, image.height // 2))
-        return jsonify({"r": center[0], "g": center[1], "b": center[2]})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        # ตัด prefix "data:image/png;base64," ออก ถ้ามี
+        if "," in data.image:
+            base64_data = data.image.split(",")[1]
+        else:
+            base64_data = data.image
 
-# ✅ สำคัญ: ทำให้ gunicorn รู้จักตัวแปร app
-if __name__ == '__main__':
-    app.run()
+        # แปลง base64 เป็น bytes
+        image_bytes = base64.b64decode(base64_data)
+
+        # เปิดเป็นภาพ
+        img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+        # ดึง pixel ตำแหน่งกลางภาพ
+        width, height = img.size
+        r, g, b = img.getpixel((width // 2, height // 2))
+
+        return {"r": r, "g": g, "b": b}
+
+    except Exception as e:
+        return {"error": str(e)}
