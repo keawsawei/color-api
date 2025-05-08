@@ -5,31 +5,32 @@ import base64
 
 app = Flask(__name__)
 
+@app.route("/")
+def home():
+    return "API is running!"
+
 @app.route("/api/extract-color", methods=["POST"])
 def extract_color():
     try:
-        data = request.json
+        data = request.get_json()
+        image_data = data["image"]
 
-        # ตรวจสอบว่าเป็น Base64 ที่มี prefix data:image หรือไม่
-        if "," in data["image"]:
-            base64_str = data["image"].split(",")[1]
-        else:
-            base64_str = data["image"]
+        # ตัด prefix ถ้ามี (data:image/png;base64,...)
+        if "," in image_data:
+            image_data = image_data.split(",")[1]
 
-        # แปลงเป็น bytes และเปิดเป็นภาพ
-        image_bytes = base64.b64decode(base64_str)
-        img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        # แปลง base64 เป็นภาพ
+        img_bytes = base64.b64decode(image_data)
+        image = Image.open(io.BytesIO(img_bytes)).convert("RGB")
 
-        # หาค่ากลางของภาพ
-        width, height = img.size
-        r, g, b = img.getpixel((width // 2, height // 2))
+        # หาค่าเฉลี่ย RGB
+        pixels = list(image.getdata())
+        r = int(sum(p[0] for p in pixels) / len(pixels))
+        g = int(sum(p[1] for p in pixels) / len(pixels))
+        b = int(sum(p[2] for p in pixels) / len(pixels))
 
         return jsonify({"r": r, "g": g, "b": b})
-
+    
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# รัน Flask บน Render (ใช้ host 0.0.0.0 และ port 10000)
-
-
+        return jsonify({"error": str(e)}), 400
 
