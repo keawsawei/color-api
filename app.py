@@ -31,5 +31,6 @@ def extract_color():
 
 # รัน Flask บน Render (ใช้ host 0.0.0.0 และ port 10000)
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    app.run(host="0.0.0.0", port=8080)
+
 
