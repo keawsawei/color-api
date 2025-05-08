@@ -1,34 +1,35 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from flask import Flask, request, jsonify
 from PIL import Image
 import io
 import base64
 
-app = FastAPI()
+app = Flask(__name__)
 
-class ImageInput(BaseModel):
-    image: str  # base64 string
-
-@app.post("/api/extract-color")
-def extract_color(data: ImageInput):
+@app.route("/api/extract-color", methods=["POST"])
+def extract_color():
     try:
-        # ตัด prefix "data:image/png;base64," ออก ถ้ามี
-        if "," in data.image:
-            base64_data = data.image.split(",")[1]
+        data = request.json
+
+        # ตรวจสอบว่าเป็น Base64 ที่มี prefix data:image หรือไม่
+        if "," in data["image"]:
+            base64_str = data["image"].split(",")[1]
         else:
-            base64_data = data.image
+            base64_str = data["image"]
 
-        # แปลง base64 เป็น bytes
-        image_bytes = base64.b64decode(base64_data)
-
-        # เปิดเป็นภาพ
+        # แปลงเป็น bytes และเปิดเป็นภาพ
+        image_bytes = base64.b64decode(base64_str)
         img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-        # ดึง pixel ตำแหน่งกลางภาพ
+        # หาค่ากลางของภาพ
         width, height = img.size
         r, g, b = img.getpixel((width // 2, height // 2))
 
-        return {"r": r, "g": g, "b": b}
+        return jsonify({"r": r, "g": g, "b": b})
 
     except Exception as e:
-        return {"error": str(e)}
+        return jsonify({"error": str(e)}), 500
+
+# รัน Flask บน Render (ใช้ host 0.0.0.0 และ port 10000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
+
