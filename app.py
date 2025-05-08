@@ -30,7 +30,6 @@ def extract_color():
         return jsonify({"error": str(e)}), 500
 
 # รัน Flask บน Render (ใช้ host 0.0.0.0 และ port 10000)
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+
 
 
